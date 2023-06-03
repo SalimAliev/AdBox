@@ -2,16 +2,19 @@ import json
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from .models import Ad, AdPhoto
 
 
 # function of getting list of ad
-def Ad_View_List(request):
+def ad_view_list(request):
     if request.method == 'GET':
-        ads = Ad.objects.prefetch_related('photos').only('title', 'price')
+        ordering = request.GET.get('ordering', 'price, data_create')
+        ordering_fields = [field.strip() for field in ordering.split(',')]
+        ads = Ad.objects.prefetch_related('photos').only('title', 'price').order_by(*ordering_fields)
 
-        paginator = Paginator(ads, 10)
-        page_number = request.GET.get('page')
+        paginator = Paginator(ads, 2)
+        page_number = request.GET.get('page', '1')
         ads_data = paginator.get_page(page_number)
 
         ads_list = []
@@ -23,13 +26,14 @@ def Ad_View_List(request):
                 'price': ad.price,
             }
             ads_list.append(ads_dict)
-        return JsonResponse({'response': ads_list})
+
+        return JsonResponse({'page': page_number, 'page_count': paginator.count, 'response': ads_list})
 
 
 # function of getting one ad by the passed id
-def Ad_View(request, pk):
+def ad_view(request, pk):
     if request.method == 'GET' and pk:
-        ad_data = Ad.objects.get(pk=pk)
+        ad_data = get_object_or_404(Ad, pk=pk)
 
         ad_dict = {
             'title': ad_data.title,
@@ -50,11 +54,13 @@ def Ad_View(request, pk):
 
 
 # ad creation function
-def Ad_Create(request):
+def ad_create(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         image_paths = data.pop('image_paths', [])
         advertisement = Ad.objects.create(**data)
+        if len(image_paths) > 3:
+            return JsonResponse({'response': 'Error, the number of photos should not exceed 3'})
         for path in image_paths:
             AdPhoto.objects.create(advertisement=advertisement, image_path=path)
         return JsonResponse({'status': 'success:', 'id': advertisement.id})
