@@ -1,40 +1,63 @@
+import json
+
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import Ad
-
-# Create your views here.
+from .models import Ad, AdPhoto
 
 
+# function of getting list of ad
 def Ad_View_List(request):
     if request.method == 'GET':
-        Ads = Ad.objects.prefetch_related('photos').only('title', 'price')
-        paginator = Paginator(Ads, 10)
+        ads = Ad.objects.prefetch_related('photos').only('title', 'price')
+
+        paginator = Paginator(ads, 10)
         page_number = request.GET.get('page')
-        Ads_data = paginator.get_page(page_number)
-        Ads_list = []
-        for ad in Ads_data:
+        ads_data = paginator.get_page(page_number)
+
+        ads_list = []
+        for ad in ads_data:
             image_paths = [path.image_path for path in ad.photos.all()]
-            Ads_dict = {
+            ads_dict = {
                 'title': ad.title,
                 'image_path': image_paths[0] if image_paths else None,
                 'price': ad.price,
             }
-            Ads_list.append(Ads_dict)
-        return JsonResponse({'response': Ads_list})
+            ads_list.append(ads_dict)
+        return JsonResponse({'response': ads_list})
 
 
+# function of getting one ad by the passed id
 def Ad_View(request, pk):
     if request.method == 'GET' and pk:
-        Ad_data = Ad.objects.prefetch_related('photos').get(pk=pk)
-        Ad_dict = {
-            'title': Ad.title,
-            'price': Ad.price,
-            'image_path': Ad.
+        ad_data = Ad.objects.get(pk=pk)
+
+        ad_dict = {
+            'title': ad_data.title,
+            'price': ad_data.price,
         }
 
-        return JsonResponse({'response': Ads})
+        fields = request.GET.get('fields', None)
+        ad_photos = AdPhoto.objects.filter(advertisement_id=pk)
+
+        if fields:
+            fields = fields.split(',')
+            ad_dict['image_path'] = [path.image_path for path in ad_photos] if 'photos' in fields else ad_photos[0].image_path
+            ad_dict['description'] = ad_data.description if 'description' in fields else None
+        else:
+            ad_dict['image_path'] = ad_photos[0].image_path
+
+        return JsonResponse({'response': ad_dict})
 
 
+# ad creation function
+def Ad_Create(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        image_paths = data.pop('image_paths', [])
+        advertisement = Ad.objects.create(**data)
+        for path in image_paths:
+            AdPhoto.objects.create(advertisement=advertisement, image_path=path)
+        return JsonResponse({'status': 'success:', 'id': advertisement.id})
 
 
 

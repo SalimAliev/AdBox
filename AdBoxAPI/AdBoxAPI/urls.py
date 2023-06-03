@@ -17,14 +17,15 @@ Including another URLconf
 import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
-from Ad.views import Ad_View_List, Ad_View
+from Ad.views import Ad_View_List, Ad_View, Ad_Create
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('advertisements/', Ad_View_List),
     path('advertisements/<int:pk>', Ad_View),
+    path('advertisements/create/', Ad_Create),
 
     path('__debug__/', include(debug_toolbar.urls)),
 ]
 
-# urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
+
