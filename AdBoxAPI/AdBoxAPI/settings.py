@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "debug_toolbar",
     'Ad',
+    'rest_framework',
 
 ]
 
@@ -108,9 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -133,21 +134,3 @@ INTERNAL_IPS = [
     # ...
 ]
 
-DEBUG_TOOLBAR_PANELS = [
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
-]
-
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-    'INSERT_BEFORE': '</body>',
-    'RENDER_PANELS': True,
-    'RESULTS_CACHE_SIZE': 200,
-}
